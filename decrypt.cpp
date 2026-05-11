@@ -14,7 +14,7 @@ using namespace std;
  * SubRoundKey is simply an XOR of a 128-bit block with the 128-bit key.
  * So basically does the same as AddRoundKey in the encryption
  */
-void SubRoundKey(unsigned char * state, unsigned char * roundKey) {
+void SubRoundKey(unsigned char* state, unsigned char* roundKey) {
 	for (int i = 0; i < 16; i++) {
 		state[i] ^= roundKey[i];
 	}
@@ -23,7 +23,7 @@ void SubRoundKey(unsigned char * state, unsigned char * roundKey) {
 /* InverseMixColumns uses mul9, mul11, mul13, mul14 look-up tables
  * Unmixes the columns by reversing the effect of MixColumns in encryption
  */
-void InverseMixColumns(unsigned char * state) {
+void InverseMixColumns(unsigned char* state) {
 	unsigned char tmp[16];
 
 	tmp[0] = (unsigned char)mul14[state[0]] ^ mul11[state[1]] ^ mul13[state[2]] ^ mul9[state[3]];
@@ -52,7 +52,7 @@ void InverseMixColumns(unsigned char * state) {
 }
 
 // Shifts rows right (rather than left) for decryption
-void ShiftRows(unsigned char * state) {
+void ShiftRows(unsigned char* state) {
 	unsigned char tmp[16];
 
 	/* Column 1 */
@@ -87,7 +87,7 @@ void ShiftRows(unsigned char * state) {
 /* Perform substitution to each of the 16 bytes
  * Uses inverse S-box as lookup table
  */
-void SubBytes(unsigned char * state) {
+void SubBytes(unsigned char* state) {
 	for (int i = 0; i < 16; i++) { // Perform substitution to each of the 16 bytes
 		state[i] = inv_s[state[i]];
 	}
@@ -97,7 +97,7 @@ void SubBytes(unsigned char * state) {
  * The number of rounds is defined in AESDecrypt()
  * Not surprisingly, the steps are the encryption steps but reversed
  */
-void Round(unsigned char * state, unsigned char * key) {
+void Round(unsigned char* state, unsigned char* key) {
 	SubRoundKey(state, key);
 	InverseMixColumns(state);
 	ShiftRows(state);
@@ -105,7 +105,7 @@ void Round(unsigned char * state, unsigned char * key) {
 }
 
 // Same as Round() but no InverseMixColumns
-void InitialRound(unsigned char * state, unsigned char * key) {
+void InitialRound(unsigned char* state, unsigned char* key) {
 	SubRoundKey(state, key);
 	ShiftRows(state);
 	SubBytes(state);
@@ -114,7 +114,7 @@ void InitialRound(unsigned char * state, unsigned char * key) {
 /* The AES decryption function
  * Organizes all the decryption steps into one function
  */
-void AESDecrypt(unsigned char * encryptedMessage, unsigned char * expandedKey, unsigned char * decryptedMessage)
+void AESDecrypt(unsigned char* encryptedMessage, unsigned char* expandedKey, unsigned char* decryptedMessage)
 {
 	unsigned char state[16]; // Stores the first 16 bytes of encrypted message
 
@@ -122,9 +122,7 @@ void AESDecrypt(unsigned char * encryptedMessage, unsigned char * expandedKey, u
 		state[i] = encryptedMessage[i];
 	}
 
-	InitialRound(state, expandedKey+160);
-
-	int numberOfRounds = 9;
+	InitialRound(state, expandedKey + 160);
 
 	for (int i = 8; i >= 0; i--) {
 		Round(state, expandedKey + (16 * (i + 1)));
@@ -158,13 +156,13 @@ int main() {
 
 	else cout << "Unable to open file";
 
-	char * msg = new char[msgstr.size()+1];
+	char* msg = new char[msgstr.size() + 1];
 
 	strcpy(msg, msgstr.c_str());
 
 	int n = strlen((const char*)msg);
 
-	unsigned char * encryptedMessage = new unsigned char[n];
+	unsigned char* encryptedMessage = new unsigned char[n];
 	for (int i = 0; i < n; i++) {
 		encryptedMessage[i] = (unsigned char)msg[i];
 	}
@@ -199,10 +197,10 @@ int main() {
 	unsigned char expandedKey[176];
 
 	KeyExpansion(key, expandedKey);
-	
-	int messageLen = strlen((const char *)encryptedMessage);
 
-	unsigned char * decryptedMessage = new unsigned char[messageLen];
+	int messageLen = strlen((const char*)encryptedMessage);
+
+	unsigned char* decryptedMessage = new unsigned char[messageLen];
 
 	for (int i = 0; i < messageLen; i += 16) {
 		AESDecrypt(encryptedMessage + i, expandedKey, decryptedMessage + i);
